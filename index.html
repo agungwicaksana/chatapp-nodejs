@@ -69,6 +69,14 @@
                     </div>
                 </div>
             </div>
+            <div class="container position-absolute top-0 end-0 w-25 mt-5 mr-5">
+                <div class="row">
+                    <div class="col-12">
+                        <h4>Daftar Pengguna Online</h4>
+                        <ul id="online-users" class="list-group"></ul>
+                    </div>
+                </div>
+            </div>
         </section>
         <script
             src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
@@ -149,6 +157,17 @@
                     e.keyCode == 13 ? handleLogin() : null;
                 });
                 loginButton.addEventListener('click', handleLogin);
+
+                // Render online users
+                const onlineUsersList = document.getElementById('online-users');
+                const onlineUserItem = (user) =>
+                    `<li class="list-group-item">${user}</li>`;
+                socket.on('addOnlineUsers', (users) => {
+                    onlineUsersList.innerHTML = '';
+                    users.forEach((user) => {
+                        onlineUsersList.innerHTML += onlineUserItem(user.user);
+                    });
+                });
             });
         </script>
     </body>

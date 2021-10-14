@@ -46,6 +46,7 @@ io.on('connection', (socket) => {
             message: `${name} joined the chat`,
             timestamp: Date(),
         })
+        updateOnlineUsersList();
     }
 
     // Ketika user left
@@ -74,7 +75,13 @@ io.on('connection', (socket) => {
             }
             return user.id != socket.id;
         });
+        updateOnlineUsersList()
     });
+
+    // Mengirim data online user
+    function updateOnlineUsersList() {
+        io.emit('addOnlineUsers', users);
+    }
 });
 
 server.listen(3000, () => {
