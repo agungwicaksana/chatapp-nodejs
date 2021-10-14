@@ -47,6 +47,10 @@
         <section id="main" class="d-none">
             <div class="container">
                 <div id="chat-list" class="list-group mt-5"></div>
+                <p
+                    id="istyping-notifier"
+                    class="text-muted my-3 fst-italic d-none"
+                ></p>
             </div>
             <div class="container fixed-bottom mb-5">
                 <div class="row">
@@ -167,6 +171,43 @@
                     users.forEach((user) => {
                         onlineUsersList.innerHTML += onlineUserItem(user.user);
                     });
+                });
+
+                // Is typing
+                let isTyping = false;
+                let typingTimer;
+                const doneTypingInterval = 1000;
+                message.addEventListener('keyup', () => {
+                    clearInterval(typingTimer);
+                    typingTimer = setTimeout(doneTyping, doneTypingInterval);
+                    if (!isTyping) {
+                        isTyping = true;
+                        socket.emit('isTyping', isTyping);
+                    }
+                });
+
+                message.addEventListener('keydown', () => {
+                    clearInterval(typingTimer);
+                });
+
+                // when done typing
+                function doneTyping() {
+                    isTyping = false;
+                    socket.emit('isTyping', isTyping);
+                }
+
+                // Render is typing
+                const isTypingNotifier =
+                    document.getElementById('istyping-notifier');
+                socket.on('renderIsTyping', ({ isTyping, message }) => {
+                    console.log(isTyping);
+                    if (isTyping) {
+                        isTypingNotifier.classList.remove('d-none');
+                        isTypingNotifier.innerHTML = message;
+                    } else {
+                        isTypingNotifier.classList.add('d-none');
+                        isTypingNotifier.innerHTML = '';
+                    }
                 });
             });
         </script>

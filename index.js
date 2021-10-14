@@ -82,6 +82,15 @@ io.on('connection', (socket) => {
     function updateOnlineUsersList() {
         io.emit('addOnlineUsers', users);
     }
+
+    // Listen is typing
+    socket.on('isTyping', (isTyping) => {
+        const user = users.find((user) => user.id == socket.id);
+        io.emit('renderIsTyping', {
+            isTyping,
+            message: `${user.user} sedang mengetik..`,
+        });
+    })
 });
 
 server.listen(3000, () => {
