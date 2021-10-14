@@ -9,7 +9,7 @@
             integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
             crossorigin="anonymous"
         />
-        <title>Hello, world!</title>
+        <title>Chat App!</title>
         <style>
             .container {
                 max-width: 600px !important;
@@ -17,6 +17,9 @@
         </style>
     </head>
     <body>
+        <div class="container">
+            <div id="chat-list" class="list-group mt-5"></div>
+        </div>
         <div class="container fixed-bottom mb-5">
             <div class="row">
                 <div class="col-12">
@@ -25,11 +28,13 @@
                             type="text"
                             class="form-control w-10"
                             placeholder="Dari"
+                            id="sender"
                         />
                         <input
                             type="text"
                             class="form-control w-50"
                             placeholder="Pesan"
+                            id="message"
                         />
                         <button
                             class="btn btn-primary px-3"
@@ -47,5 +52,42 @@
             integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
             crossorigin="anonymous"
         ></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const socket = io();
+                const chatList = document.getElementById('chat-list');
+                const sender = document.getElementById('sender');
+                const message = document.getElementById('message');
+                const sendButton = document.getElementById('send-button');
+
+                const chatItem = ({ message }) => `
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">List group item heading</h6>
+                            <small class="text-muted">3 days ago</small>
+                        </div>
+                        <p class="mb-1">${message}</p>
+                        <small class="text-muted">And some muted small print.</small>
+                    </div>
+                `;
+
+                // Ketika send button diklik
+                const handleSendMessage = () => {
+                    socket.emit('newMessage', message.value);
+                    message.value = '';
+                };
+
+                message.addEventListener('keyup', (e) => {
+                    e.keyCode == 13 ? handleSendMessage() : null;
+                });
+                sendButton.addEventListener('click', handleSendMessage);
+
+                // Ketika ada pesan baru / emit / broadcast baru, render ke dom
+                socket.on('newMessage', (message) => {
+                    chatList.innerHTML += chatItem({ message });
+                });
+            });
+        </script>
     </body>
 </html>
