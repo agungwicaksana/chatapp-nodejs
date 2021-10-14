@@ -11,15 +11,51 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
+let users = [];
+
 io.on('connection', (socket) => {
     // console.log('a user connected');
+
+    // Handle User Login
+    socket.on('newUser', (user) => {
+        if (!users.includes(user)) {
+            // Jika nama belum terdaftar
+            socket.emit('newUserResponse', {
+                status: true,
+                user
+            });
+            users.push({
+                id: socket.id, //digenerate otomatis oleh socket
+                user,
+            });
+            userJoinNotif(user);
+        } else {
+            // Jika nama sudah terdaftar
+            socket.emit('newUserResponse', {
+                status: false,
+                user
+            });
+        }
+    })
+
     // socket.broadcast.emit digunakan untuk membroadcast ke client yg telah connect kecuali diri sendiri
     // sedangkan io.emit akan membroadcast ke semua orang termasuk diri sendiri
-    socket.broadcast.emit('newMessage', {
-        sender: 'System',
-        message: 'Someone joined the chat',
-        timestamp: Date(),
-    })
+    function userJoinNotif(name) {
+        socket.broadcast.emit('newMessage', {
+            sender: 'System',
+            message: `${name} joined the chat`,
+            timestamp: Date(),
+        })
+    }
+
+    // Ketika user left
+    function userLeftNotif(name) {
+        socket.broadcast.emit('newMessage', {
+            sender: 'System',
+            message: `${name} left the chat`,
+            timestamp: Date(),
+        })
+    }
 
     // Ketika ada message baru
     // Emit / umumkan ke semuanya
@@ -31,11 +67,13 @@ io.on('connection', (socket) => {
     // Ketika user terdisconnect
     socket.on('disconnect', () => {
         // console.log('user disconnected');
-        socket.broadcast.emit('newMessage', {
-            sender: 'System',
-            message: 'Someone left the chat',
-            timestamp: Date(),
-        })
+        // Hapus user yang terdisconnect
+        users = users.filter((user) => {
+            if (user.id == socket.id) {
+                userLeftNotif(user.user);
+            }
+            return user.id != socket.id;
+        });
     });
 });
 
