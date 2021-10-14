@@ -53,6 +53,7 @@
             crossorigin="anonymous"
         ></script>
         <script src="/socket.io/socket.io.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const socket = io();
@@ -61,20 +62,25 @@
                 const message = document.getElementById('message');
                 const sendButton = document.getElementById('send-button');
 
-                const chatItem = ({ message }) => `
+                const chatItem = ({ message, sender, timestamp }) => `
                     <div class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">List group item heading</h6>
-                            <small class="text-muted">3 days ago</small>
+                            <h6 class="mb-1">${sender}</h6>
+                            <small class="text-muted">${moment().format(
+                                'h:mm a'
+                            )}</small>
                         </div>
                         <p class="mb-1">${message}</p>
-                        <small class="text-muted">And some muted small print.</small>
                     </div>
                 `;
 
                 // Ketika send button diklik
                 const handleSendMessage = () => {
-                    socket.emit('newMessage', message.value);
+                    socket.emit('newMessage', {
+                        message: message.value,
+                        sender: sender.value,
+                        timestamp: Date(),
+                    });
                     message.value = '';
                 };
 
@@ -84,8 +90,8 @@
                 sendButton.addEventListener('click', handleSendMessage);
 
                 // Ketika ada pesan baru / emit / broadcast baru, render ke dom
-                socket.on('newMessage', (message) => {
-                    chatList.innerHTML += chatItem({ message });
+                socket.on('newMessage', (chat) => {
+                    chatList.innerHTML += chatItem(chat);
                 });
             });
         </script>
